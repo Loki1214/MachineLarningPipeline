@@ -1,0 +1,20 @@
+version: '3'
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: root
+    ports:
+      - '5000:5000'
+    volumes:
+      - ./app/storage:/home/static
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # command: bash

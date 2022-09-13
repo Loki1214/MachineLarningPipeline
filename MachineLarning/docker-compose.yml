@@ -1,0 +1,24 @@
+version: '3'
+services:
+  training:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    user: root
+    ports:
+      - '8888:8888'
+    environment:
+      - GRANT_SUDO=yes
+      - TZ=Asia/Tokyo
+    volumes:
+      - ./work:/home/work
+      - ../trainedDNN:/home/trainedDNN
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # command: bash
