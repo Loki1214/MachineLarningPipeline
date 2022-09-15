@@ -4,12 +4,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - no_proxy=${NO_PROXY}
     user: root
     ports:
       - '5000:5000'
-    volumes:
-      - ./app/storage:/home/static
-    tty: true
     deploy:
       resources:
         reservations:

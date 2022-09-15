@@ -56,12 +56,7 @@ def get_feedback():
 	os.makedirs(dir, exist_ok=True)
 	basename = os.path.basename(filename)
 	shutil.move(os.path.join(app.config['UPLOAD_FOLDER'], basename), os.path.join(dir, basename))
-	return render_template('got_feedback.html')
-	if request.form.get('feedback'):
-		return {"feedback": feedback}
-	else:
-		# test = request.form.get('name')
-		return redirect(url_for('upload_file'))
+	return render_template('got_feedback.html', feedback=feedback)
 
 from PIL import Image
 import datetime

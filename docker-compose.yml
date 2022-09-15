@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  webapp:
+    build:
+      context: WebApp
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - no_proxy=${NO_PROXY}
+    container_name: flask
+    user: root
+    command: ["bash"]
+    tty: true
+    ports:
+      - '5000:5000'
+    tty: true
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  storage:
+    image: minio/minio
+    container_name: minio
+    environment:
+      - MINIO_ROOT_USER=minioadminuser
+      - MINIO_ROOT_PASSWORD=minioadminpassword
+    entrypoint: bash
+    command: -c "/opt/bin/minio server /export --address :9999 --console-address :9001"
+    volumes:
+      - ./DataStorage:/export
+    ports:
+      - 9000:9000
+      - 9001:9001
+
+  database:
+    image: mysql
+    container_name: mysql
+    ports:
+     - 3306:3306
+    env_file:
+     - ./DataBase/.env_mysql
+    volumes:
+      - type: volume
+        source: mysql-data
+        target: /var/lib/mysql
+      - type: bind
+        source: ./DataBase/init
+        target: /docker-entrypoint-initdb.d
+
+volumes:
+  mysql-data:
+    name: mysql-volume
