@@ -1,4 +1,4 @@
 #!/bin/sh
 
-python3 work/train_NeuralNetwork.py
-cp work/model_definition.py work/model_weights.pth work/imageClassifier.py trainedDNN/
+python3 train_NeuralNetwork.py
+cp model_definition.py model_weights.pth imageClassifier.py trainedDNN/

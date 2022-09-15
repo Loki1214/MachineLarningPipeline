@@ -5,41 +5,37 @@ import torch.nn.functional as F
 from torchvision import datasets, transforms
 
 # %%
-#----------------------------------------------------------
-# ハイパーパラメータなどの設定値
-num_epochs = 10         # 学習を繰り返す回数
-num_batch = 100         # 一度に処理する画像の枚数
-learning_rate = 0.001   # 学習率
-image_size = 28*28      # 画像の画素数(幅x高さ)
-
 # GPU(CUDA)が使えるかどうか？
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 device
 
 # %%
+from model_definition import Net
+#----------------------------------------------------------
+# ニューラルネットワークの生成
+model = Net().to(device)
+
+# %%
+from custom_dataset import MyDataset
+full_dataset = MyDataset(
+	csv_file='./data/MNIST.csv',
+	root_dir='./data',
+	transform=model.transform
+)
+
+# 学習データ、検証データに 8:2 の割合で分割する。
+train_size = int(0.8 * len(full_dataset))
+test_size  = len(full_dataset) - train_size
+train_dataset, test_dataset = torch.utils.data.random_split(
+    full_dataset, [train_size, test_size]
+)
+
 #----------------------------------------------------------
 # 学習用／評価用のデータセットの作成
-
-# 変換方法の指定
-transform = transforms.Compose([
-    transforms.ToTensor()
-    ])
-
-# MNISTデータの取得
-# https://pytorch.org/vision/stable/generated/torchvision.datasets.MNIST.html#torchvision.datasets.MNIST
-# 学習用
-train_dataset = datasets.MNIST(
-    './data',               # データの保存先
-    train = True,           # 学習用データを取得する
-    download = True,        # データが無い時にダウンロードする
-    transform = transform   # テンソルへの変換など
-    )
-# 評価用
-test_dataset = datasets.MNIST(
-    './data',
-    train = False,
-    transform = transform
-    )
+# ハイパーパラメータなどの設定値
+num_epochs = 10         # 学習を繰り返す回数
+num_batch = 100         # 一度に処理する画像の枚数
+learning_rate = 0.001   # 学習率
 
 # データローダー
 train_dataloader = torch.utils.data.DataLoader(
@@ -52,11 +48,9 @@ test_dataloader = torch.utils.data.DataLoader(
     shuffle = True)
 
 # %%
-from model_definition import Net
-
 #----------------------------------------------------------
-# ニューラルネットワークの生成
-model = Net(image_size, 10).to(device)
+# 学習
+model.train()  # モデルを訓練モードにする
 
 #----------------------------------------------------------
 # 損失関数の設定
@@ -66,35 +60,28 @@ criterion = nn.CrossEntropyLoss()
 # 最適化手法の設定
 optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
 
-# %%
-#----------------------------------------------------------
-# 学習
-model.train()  # モデルを訓練モードにする
-
 for epoch in range(num_epochs): # 学習を繰り返し行う
     loss_sum = 0
 
     for inputs, labels in train_dataloader:
-
         # GPUが使えるならGPUにデータを送る
         inputs = inputs.to(device)
         labels = labels.to(device)
 
-        # optimizerを初期化
+        # # optimizerを初期化
         optimizer.zero_grad()
 
-        # ニューラルネットワークの処理を行う
-        inputs = inputs.view(-1, image_size) # 画像データ部分を一次元へ並び変える
+        # # ニューラルネットワークの処理を行う
         outputs = model(inputs)
 
-        # 損失(出力とラベルとの誤差)の計算
+        # # 損失(出力とラベルとの誤差)の計算
         loss = criterion(outputs, labels)
         loss_sum += loss
 
-        # 勾配の計算
+        # # 勾配の計算
         loss.backward()
 
-        # 重みの更新
+        # # 重みの更新
         optimizer.step()
 
     # 学習状況の表示
@@ -119,7 +106,6 @@ with torch.no_grad():
         labels = labels.to(device)
 
         # ニューラルネットワークの処理を行う
-        inputs = inputs.view(-1, image_size) # 画像データ部分を一次元へ並び変える
         outputs = model(inputs)
 
         # 損失(出力とラベルとの誤差)の計算

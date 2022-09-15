@@ -8,10 +8,9 @@ services:
     ports:
       - '8888:8888'
     environment:
-      - GRANT_SUDO=yes
       - TZ=Asia/Tokyo
     volumes:
-      - ./work:/home/work
+      - ./work/data:/home/data
       - ../trainedDNN:/home/trainedDNN
     tty: true
     deploy:

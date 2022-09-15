@@ -70,9 +70,7 @@ from imageClassifier import ImageClassifier
 t_delta = datetime.timedelta(hours=9)
 JST     = datetime.timezone(t_delta, 'JST')
 now     = datetime.datetime.now(JST)
-image_width  = 28
-image_height = 28
-classifier = ImageClassifier(image_width, image_height)
+classifier = ImageClassifier()
 
 @app.route('/upload/<filename>')
 # アップロードされた画像ファイルに書かれた数字を分類
@@ -80,9 +78,10 @@ def uploaded_file(filename):
 	path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 	image = Image.open(path)
 	pred  = classifier.predict(image)
+	filenameOrig = filename
 	filename = now.strftime('%Y%m%d%H%M%S_') + filename
 	shutil.move(path, os.path.join(app.config['UPLOAD_FOLDER'], filename))
-	return render_template('result.html', prediction=pred, filename=url_for('static', filename=filename))
+	return render_template('result.html', prediction=pred, filename=url_for('static', filename=filename), filenameOrig=filenameOrig)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)

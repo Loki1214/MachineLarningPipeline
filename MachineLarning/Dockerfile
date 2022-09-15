@@ -6,9 +6,11 @@ RUN apt update
 RUN apt install -y python3 python3-pip
 RUN pip3 install --upgrade pip
 RUN pip3 install torch torchvision
+RUN pip3 install pandas
 
 WORKDIR /home
 COPY work/model_definition.py    /home
+COPY work/custom_dataset.py      /home
 COPY work/train_NeuralNetwork.py /home
 COPY work/imageClassifier.py     /home
 COPY train_NeuralNetwork.sh      /home
