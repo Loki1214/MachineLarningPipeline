@@ -4,9 +4,11 @@ USER root
 
 RUN apt update
 RUN apt install -y python3 python3-pip
+RUN apt install -y curl
+RUN apt install -y mysql-client libmysqlclient-dev
 RUN pip3 install --upgrade pip
 RUN pip3 install torch torchvision
-RUN pip3 install pandas
+RUN pip3 install pandas boto3 mysqlclient
 
 WORKDIR /home
 COPY work/model_definition.py    /home

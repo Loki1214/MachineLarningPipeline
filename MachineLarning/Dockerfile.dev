@@ -36,5 +36,9 @@ ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 # <<< Install cuda
 
+RUN apt update
+RUN apt install -y curl
+RUN apt install -y mysql-client libmysqlclient-dev
 RUN pip3 install --upgrade pip
 RUN pip3 install torch torchvision
+RUN pip3 install pandas boto3 mysqlclient

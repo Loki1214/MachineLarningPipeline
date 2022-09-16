@@ -1,14 +1,30 @@
 version: '3'
 
 services:
-  webapp:
+  training:
     build:
-      context: WebApp
+      context: MachineLarning
       dockerfile: Dockerfile
       args:
         - http_proxy=${HTTP_PROXY}
         - https_proxy=${HTTPS_PROXY}
         - no_proxy=${NO_PROXY}
+    user: root
+    ports:
+      - '8888:8888'
+    # volumes:
+    #   - ./MachineLarning/work/data:/home/data
+    #   - ./trainedDNN:/home/trainedDNN
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  webapp:
+    image: localhost:5050/mywebapp
     container_name: flask
     user: root
     # command: ["bash"]

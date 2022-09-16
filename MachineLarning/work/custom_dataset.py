@@ -6,10 +6,11 @@ import torch
 from torch.utils.data import Dataset
 
 class MyDataset(Dataset):
-	def __init__(self, csv_file, root_dir, transform=None, header=None, names=None):
+	def __init__(self, csv_file, root_dir, transform=None, header=None, names=None, imageOpener=Image.open):
 		self.csv_file = pd.read_csv(csv_file, header=header, names=names)
 		self.root_dir = root_dir
 		self.transform = transform
+		self.openImage = imageOpener
 
 	def __len__(self):
 		return len(self.csv_file)
@@ -20,7 +21,7 @@ class MyDataset(Dataset):
 
 		img_name = os.path.join(self.root_dir,
 								self.csv_file.iloc[idx, 0])
-		image = Image.open(img_name)
+		image = self.openImage(img_name)
 		labels = self.csv_file.iloc[idx, 1:]
 		# print(self.csv_file.iloc[idx, 1])
 		# labels = np.array([labels])

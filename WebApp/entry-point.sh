@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-until curl 'http://minio:9001'; do
+until curl 'http://minio:9001' >/dev/null 1>&2; do
   echo 'waiting for minio to start...'
   sleep 2
 done
