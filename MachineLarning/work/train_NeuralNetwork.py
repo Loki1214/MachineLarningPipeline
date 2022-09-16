@@ -1,10 +1,6 @@
 # %%
+# %cd /home/jovyan/work
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torchvision import datasets, transforms
-
-# %%
 # GPU(CUDA)が使えるかどうか？
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 device
@@ -16,9 +12,70 @@ from model_definition import Net
 model = Net().to(device)
 
 # %%
+import boto3
+from botocore.exceptions import ClientError
+from botocore.config     import Config
+s3 = boto3.resource(
+	service_name          = "s3",
+	endpoint_url          = "http://minio:9000",
+	aws_access_key_id     = 'minioadminuser',
+	aws_secret_access_key = 'minioadminpassword',
+	config                = Config(proxies={'http': '', 'https': ''}))
+bucket = s3.Bucket('digit-images')
+
+# %%
+import MySQLdb
+mysql = MySQLdb.connect(
+		user='root',
+		password='root_password',
+		host='mysql',
+		port=3306,
+		database='DigitImages'
+	)
+mysqlCursor = mysql.cursor()
+tableName='uploaded'
+
+# %%
+import os, csv
+import numpy as np
+
+mysqlCursor.execute(f"SELECT CONCAT('{tableName}_',relpath), label, id, is_used FROM {tableName}")
+rows = np.array(mysqlCursor.fetchall())
+
+newdata_filename='./data/newdata_list.csv'
+newdata_file = open(newdata_filename, 'w')
+row = rows[:,3].astype(int)
+csv.writer(newdata_file).writerows(rows[row == np.zeros(row.shape), 2])
+newdata_file.close()
+
+csv_filename ='./data/data_list.csv'
+csv_file     = open(csv_filename, 'w')
+csv_writer   = csv.writer(csv_file)
+csv_writer.writerows(rows[:,0:2])
+images = rows[:,0:2]
+
+
+mysqlCursor.execute(f"SELECT CONCAT('MNIST_',relpath), label, id, is_used FROM MNIST")
+rows = np.array(mysqlCursor.fetchall())
+images = np.vstack([images,rows[:,0:2]])
+csv_writer.writerows(images)
+csv_file.close()
+
+for relpath, label in images:
+	localpath = os.path.join('./data', relpath)
+	if not os.path.isfile(localpath):
+		try:
+			bucket.download_file(Key=relpath, Filename=localpath)
+		except ClientError as e:
+			if e.response['Error']['Code'] == "404":
+				print("The object does not exist.")
+			else:
+				raise
+
+# %%
 from custom_dataset import MyDataset
 full_dataset = MyDataset(
-	csv_file='./data/MNIST.csv',
+	csv_file=csv_filename,
 	root_dir='./data',
 	transform=model.transform
 )
@@ -48,6 +105,7 @@ test_dataloader = torch.utils.data.DataLoader(
     shuffle = True)
 
 # %%
+import torch.nn as nn
 #----------------------------------------------------------
 # 学習
 model.train()  # モデルを訓練モードにする
@@ -117,3 +175,13 @@ with torch.no_grad():
         correct += pred.eq(labels.view_as(pred)).sum().item()
 
 print(f"Loss: {loss_sum.item() / len(test_dataloader)}, Accuracy: {100*correct/len(test_dataset)}% ({correct}/{len(test_dataset)})")
+
+# %%
+newdata_file = open(newdata_filename, 'r')
+reader = csv.reader(newdata_file)
+print(reader)
+for id in reader:
+	mysqlCursor.execute(f"UPDATE uploaded SET is_used = true WHERE id = {id[0]};")
+newdata_file.close()
+mysql.commit()
+mysql.close()
