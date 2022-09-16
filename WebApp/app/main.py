@@ -3,7 +3,7 @@ import shutil
 # request フォームから送信した情報を扱うためのモジュール
 # redirect  ページの移動
 # url_for アドレス遷移
-from flask import Flask, request, redirect, url_for, render_template
+from flask import Flask, jsonify, request, redirect, url_for, render_template
 # ファイル名をチェックする関数
 from werkzeug.utils import secure_filename
 
@@ -46,35 +46,7 @@ def upload_file():
 	return render_template('index.html')
 
 
-import re
-import MySQLdb
-mysql = MySQLdb.connect(
-		user='root',
-		password='root_password',
-		host='mysql',
-		port=3306,
-		database='DigitImages'
-	)
-mysqlCursor = mysql.cursor()
-mysqlCursor.execute('create table IF NOT EXISTS uploadedImages(id INT AUTO_INCREMENT primary key, path varchar(100), label INT, date DATETIME, is_used BOOLEAN)')
-@app.route('/feedback', methods=['POST'])
-def get_feedback():
-	feedback = int(request.form.get('feedback'))
-	filename = request.form.get('filename')
-	# if feedback is None:
-	# 	dir = os.path.join(app.config['UPLOAD_FOLDER'], 'nolabel/')
-	# else:
-	# 	dir = os.path.join(app.config['UPLOAD_FOLDER'], str(feedback) + '/')
-	# os.makedirs(dir, exist_ok=True)
-	basename = os.path.basename(filename)
-	# shutil.move(os.path.join(app.config['UPLOAD_FOLDER'], basename), os.path.join(dir, basename))
-
-	datetime = re.search(r'\d+', basename).group()
-	print(f"INSERT INTO uploadedImages VALUES('{basename}',{feedback},{datetime})")
-	mysqlCursor.execute(f"INSERT INTO uploadedImages(path,label,date,is_used) VALUES('{basename}',{feedback},'{datetime}',false)")
-	mysql.commit()
-	return render_template('got_feedback.html', feedback=feedback)
-
+# アップロードされた画像ファイルに書かれた数字を分類
 from PIL import Image
 import datetime
 from imageClassifier import ImageClassifier
@@ -85,7 +57,6 @@ now     = datetime.datetime.now(JST)
 classifier = ImageClassifier()
 
 @app.route('/upload/<filename>')
-# アップロードされた画像ファイルに書かれた数字を分類
 def uploaded_file(filename):
 	path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
 	image = Image.open(path)
@@ -94,6 +65,59 @@ def uploaded_file(filename):
 	filename = now.strftime('%Y%m%d%H%M%S_') + filename
 	shutil.move(path, os.path.join(app.config['UPLOAD_FOLDER'], filename))
 	return render_template('result.html', prediction=pred, filename=url_for('static', filename=filename), filenameOrig=filenameOrig)
+
+
+# 分類結果についてのフィードバックを受け取り、保存する
+import boto3
+from botocore.exceptions import ClientError
+from botocore.config     import Config
+s3 = boto3.resource(
+	service_name          = "s3",
+	endpoint_url          = "http://minio:9000",
+	aws_access_key_id     = 'minioadminuser',
+	aws_secret_access_key = 'minioadminpassword',
+	config                = Config(proxies={'http': '', 'https': ''}))
+try:
+	bucket = s3.create_bucket(Bucket='digit-images')
+except ClientError as e:
+	if e.response['Error']['Code'] in ('BucketAlreadyExists', 'BucketAlreadyOwnedByYou'):
+		bucket = s3.Bucket('digit-images')
+	else:
+		print(f'Unknown exception.\n\t ' + e.response['Error']['Code'])
+		raise
+
+import re
+import MySQLdb
+mysql = MySQLdb.connect(
+		user='root',
+		password='root_password',
+		host='mysql',
+		port=3306,
+		database='DigitImages'
+	)
+mysqlCursor = mysql.cursor()
+tableName='uploaded'
+mysqlCursor.execute(f'create table IF NOT EXISTS {tableName}(id INT AUTO_INCREMENT primary key, relpath varchar(100), label INT, date DATETIME, is_used BOOLEAN)')
+
+@app.route('/feedback', methods=['POST'])
+def get_feedback():
+	feedback = int(request.form.get('feedback'))
+	filename = request.form.get('filename')
+	if feedback is None:
+		feedback = 'NULL'
+	basename = os.path.basename(filename)
+	filepath = os.path.join(app.config['UPLOAD_FOLDER'], basename)
+
+	datetime = re.search(r'\d+', basename).group()
+	bucket.upload_file(f'{filepath}', basename)
+	mysqlCursor.execute(f"INSERT INTO {tableName}(relpath,label,date,is_used) VALUES('{basename}',{feedback},'{datetime}',false)")
+	mysql.commit()
+
+	objs = list(bucket.objects.filter(Prefix=basename))
+	if len(objs) > 0 and objs[0].key == basename:
+		os.remove(filepath)
+	return render_template('got_feedback.html', feedback=feedback)
+
 
 if __name__ == "__main__":
 	app.run(host='0.0.0.0', port=5000, debug=True)

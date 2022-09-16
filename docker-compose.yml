@@ -11,11 +11,10 @@ services:
         - no_proxy=${NO_PROXY}
     container_name: flask
     user: root
-    command: ["bash"]
+    # command: ["bash"]
     tty: true
     ports:
       - '5000:5000'
-    tty: true
     deploy:
       resources:
         reservations:
@@ -31,7 +30,7 @@ services:
       - MINIO_ROOT_USER=minioadminuser
       - MINIO_ROOT_PASSWORD=minioadminpassword
     entrypoint: bash
-    command: -c "/opt/bin/minio server /export --address :9999 --console-address :9001"
+    command: -c "/opt/bin/minio server /export --address :9000 --console-address :9001"
     volumes:
       - ./DataStorage:/export
     ports:
@@ -49,9 +48,9 @@ services:
       - type: volume
         source: mysql-data
         target: /var/lib/mysql
-      - type: bind
-        source: ./DataBase/init
-        target: /docker-entrypoint-initdb.d
+      # - type: bind
+      #   source: ./DataBase/init
+      #   target: /docker-entrypoint-initdb.d
 
 volumes:
   mysql-data:
