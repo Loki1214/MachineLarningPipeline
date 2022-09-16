@@ -1,2 +1,2 @@
 Registry/registry/docker
-DataStorage/.minio.sys
+DataStorage/*
