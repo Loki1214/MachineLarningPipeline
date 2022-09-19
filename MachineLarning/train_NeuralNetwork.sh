@@ -42,13 +42,13 @@ while true; do
 	Nunused=$(mysql --host=${DATABASE} --port=3306 -u${MYSQL_USER} -p${MYSQL_PASSWORD} --database=${MYSQL_DATABASE} \
 		-B -N -e "SELECT COUNT(is_used=false or NULL) FROM uploaded" 2>/dev/null)
 	echo "Nunused = ${Nunused}"
-	if [ ${Nunused:-0} -gt 2 ]; then
+	if [ ${Nunused:-0} -gt 9 ]; then
 		train_NeuralNetwork;
 	fi
 
 	echo 'END OF THE SCRIPT'
 	echo >> $LOG_OUT
 	echo >> $LOG_ERR
-	sleep 10;
+	sleep 3600;
 done
 rm -f $LOCK_FILE

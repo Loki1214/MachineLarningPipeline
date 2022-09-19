@@ -91,12 +91,14 @@ services:
         target: /docker-entrypoint-initdb.d:ro
 
   database-frontend:
-    image: phpmyadmin/phpmyadmin:fpm
+    image: phpmyadmin/phpmyadmin:5
     container_name: phpmyadmin
     depends_on:
       - database
     env_file:
       - common-variables.env
+    environment:
+      - PMA_HOST=database
     ports:
     - '8080:80'
 

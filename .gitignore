@@ -1,6 +1,6 @@
 .vscode
 .devcontainer
-.log
+*.log
 .ipynb
 *.dev.*
 *.dev

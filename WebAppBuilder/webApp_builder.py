@@ -28,6 +28,9 @@ def allwed_file(filename):
 	# OKなら１、だめなら0
 	return filename in ALLOWED_FILES
 
+@app.route("/", methods=["GET"])
+def status():
+	return {"builder_status": 'ready'}
 
 # ファイルを受け取る方法の指定
 @app.route("/", methods=["POST"])
