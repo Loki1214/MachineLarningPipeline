@@ -10,11 +10,13 @@ services:
         - https_proxy=${HTTPS_PROXY}
         - no_proxy=${NO_PROXY}
     user: root
-    ports:
-      - '8888:8888'
-    # volumes:
-    #   - ./MachineLarning/work/data:/home/data
-    #   - ./trainedDNN:/home/trainedDNN
+    tty: true
+    env_file:
+      - common-variables.env
+    volumes:
+      - type: bind
+        source: ./MachineLarning/log
+        target: /home/log
     deploy:
       resources:
         reservations:
@@ -23,12 +25,32 @@ services:
               count: 1
               capabilities: [gpu]
 
+  appbuilder:
+    build:
+      context: WebAppBuilder
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - no_proxy=${NO_PROXY}
+    container_name: builder
+    user: root
+    env_file:
+      - common-variables.env
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+
   webapp:
     image: localhost:5050/mywebapp
     container_name: flask
+    hostname: webapp
     user: root
     # command: ["bash"]
-    tty: true
+    # tty: true
+    env_file:
+      - common-variables.env
     ports:
       - '5000:5000'
     deploy:
@@ -40,34 +62,46 @@ services:
               capabilities: [gpu]
 
   storage:
-    image: minio/minio
+    image: minio/minio:RELEASE.2022-09-07T22-25-02Z.fips
     container_name: minio
-    environment:
-      - MINIO_ROOT_USER=minioadminuser
-      - MINIO_ROOT_PASSWORD=minioadminpassword
+    hostname: storage
     entrypoint: bash
     command: -c "/opt/bin/minio server /export --address :9000 --console-address :9001"
-    volumes:
-      - ./DataStorage:/export
+    env_file:
+      - common-variables.env
     ports:
-      - 9000:9000
       - 9001:9001
+    volumes:
+      - type: volume
+        source: minio-data
+        target: /export
 
   database:
-    image: mysql
+    image: mysql:8
     container_name: mysql
-    ports:
-     - 3306:3306
+    hostname: database
     env_file:
-     - ./DataBase/.env_mysql
+      - common-variables.env
     volumes:
       - type: volume
         source: mysql-data
         target: /var/lib/mysql
-      # - type: bind
-      #   source: ./DataBase/init
-      #   target: /docker-entrypoint-initdb.d
+      - type: bind
+        source: ./DataBase/initdb.d
+        target: /docker-entrypoint-initdb.d:ro
+
+  database-frontend:
+    image: phpmyadmin/phpmyadmin:fpm
+    container_name: phpmyadmin
+    depends_on:
+      - database
+    env_file:
+      - common-variables.env
+    ports:
+    - '8080:80'
 
 volumes:
   mysql-data:
     name: mysql-volume
+  minio-data:
+    name: minio-volume

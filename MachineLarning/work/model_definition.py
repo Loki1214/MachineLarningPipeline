@@ -13,13 +13,13 @@ class ConvertToRGBA(object):
 class Net(nn.Module):
 	def __init__(self):
 		super(Net, self).__init__()
-		self.image_height = 52
-		self.image_width = 52
-		self.image_size = (self.image_height, self.image_width)
+		self.image_height   = 4*16
+		self.image_width    = 4*16
+		self.image_size     = (self.image_height, self.image_width)
 		self.image_channels = 4
-		self.input_size = self.image_height * self.image_width * self.image_channels
-		self.output_size = 10
-		self.transform = transforms.Compose(
+		self.input_size     = self.image_height * self.image_width * self.image_channels
+		self.output_size    = 10
+		self.transform      = transforms.Compose(
 			[
 				transforms.RandomResizedCrop(
 					self.image_size, scale=(1.0, 1.0), ratio=(1.0, 1.0)

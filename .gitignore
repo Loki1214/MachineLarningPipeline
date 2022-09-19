@@ -1,2 +1,15 @@
-Registry/registry/docker
+.vscode
+.devcontainer
+.log
+.ipynb
+*.dev.*
+*.dev
+model_weights.pth
+__pycache__/
+
+Registry/registry/*
 DataStorage/*
+
+WebAppBuilder/webAppFiles/imageClassifier.py
+WebAppBuilder/webAppFiles/model_definition.py
+WebAppBuilder/webAppFiles/model_weights.pth

@@ -9,11 +9,19 @@ RUN apt install -y mysql-client libmysqlclient-dev
 RUN pip3 install --upgrade pip
 RUN pip3 install torch torchvision
 RUN pip3 install pandas boto3 mysqlclient
+RUN pip3 install setproctitle
 
 WORKDIR /home
+COPY data/torch                  /home/data/torch
+COPY work/registerMNIST.py       /home
 COPY work/model_definition.py    /home
 COPY work/custom_dataset.py      /home
 COPY work/train_NeuralNetwork.py /home
 COPY work/imageClassifier.py     /home
 COPY train_NeuralNetwork.sh      /home
-CMD ["./train_NeuralNetwork.sh"]
+RUN mkdir -p /home/data
+RUN mkdir -p /home/trainedDNN
+
+COPY entry-point.sh /
+ENTRYPOINT ["/entry-point.sh"]
+CMD ["/home/train_NeuralNetwork.sh", "bash"]
