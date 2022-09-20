@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>
+			ファイルをアップロードして判定しよう
+		</title>
+	</head>
+	<body>
+		<h1>
+			すみません。アップロードされたファイル形式には、現在対応していません。
+		</h1>
+		現在対応できているのは、以下のファイル形式です：
+		<ul>
+		{% for ext in extensions %}
+			<li> {{ ext }} </li>
+		{% endfor %}
+		</ul>
+		<a href='{{ url_for('upload_file') }}' > トップに戻る </a>
+	</body>
+</html>

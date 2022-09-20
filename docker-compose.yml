@@ -11,6 +11,7 @@ services:
         - no_proxy=${NO_PROXY}
     user: root
     tty: true
+    restart: always
     env_file:
       - common-variables.env
     volumes:
@@ -41,6 +42,9 @@ services:
       - type: bind
         source: /var/run/docker.sock
         target: /var/run/docker.sock
+      - type: bind
+        source: ./trainedDNN
+        target: /home/trainedDNN
 
   webapp:
     image: localhost:5050/mywebapp

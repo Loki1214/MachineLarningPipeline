@@ -19,7 +19,7 @@ UPLOAD_FOLDER = "./static"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # アップロードされる拡張子の制限
-ALLOWED_EXTENSIONS = set(["png", "jpg", "gif"])
+ALLOWED_EXTENSIONS = set(["png", "jpg", "jpeg", "gif"])
 
 
 def allwed_file(filename):
@@ -51,6 +51,8 @@ def upload_file():
 			file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 			# アップロード後のページに転送
 			return redirect(url_for("uploaded_file", filename=filename))
+		else:
+			return render_template("filename_notAllowed.html", extensions=list(ALLOWED_EXTENSIONS))
 	return render_template("index.html")
 
 

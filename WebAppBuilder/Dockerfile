@@ -10,6 +10,6 @@ WORKDIR /home
 COPY webAppFiles        /home/webAppFiles
 COPY webApp_builder.py  /home
 COPY build_new_image.sh /home
-RUN mkdir -p /home/trainedDNN
+# RUN mkdir -p /home/trainedDNN
 
 CMD ["python3", "webApp_builder.py"]

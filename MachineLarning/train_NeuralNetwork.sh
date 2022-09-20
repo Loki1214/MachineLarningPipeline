@@ -2,20 +2,35 @@
 
 LOG_OUT=log/stdout.log
 LOG_ERR=log/stderr.log
-exec 1> >(
-	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
-		| tee -a $LOG_OUT
-	)
-exec 2> >(
-	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
-	| tee -a $LOG_ERR 1>&2
-	)
+# exec 1> >(
+# 	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
+# 		| tee -a $LOG_OUT
+# 	)
+# exec 2> >(
+# 	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
+# 	| tee -a $LOG_ERR 1>&2
+# 	)
+
+NewDataNum=2;
+IntervalSec=10;
+
 
 LOCK_FILE=/tmp/$(basename $0 .sh).lock
-if ! ln -s $$ $LOCK_FILE; then
-    echo "The script \"${0}\" is already running." 1>&2;
-    exit 100;
-fi
+trap "rm -f ${LOCK_FILE}" SIGHUP SIGINT SIGQUIT SIGTERM
+
+while ! ln -s $$ $LOCK_FILE; do
+	lockDate=`stat -c %Y $LOCK_FILE`
+	now=$(date +%s)
+	ls -l $LOCK_FILE
+	echo $now, $lockDate, $((now - lockDate))
+	if [ $((now - lockDate)) -gt 3600 ]; then
+		rm -f ${LOCK_FILE}
+		continue;
+	fi
+
+    echo "The script \"${0}\" is already running.";
+    exit 129;
+done
 
 function train_NeuralNetwork() {
 	echo "Running command: python3 train_NeuralNetwork.py";
@@ -42,13 +57,13 @@ while true; do
 	Nunused=$(mysql --host=${DATABASE} --port=3306 -u${MYSQL_USER} -p${MYSQL_PASSWORD} --database=${MYSQL_DATABASE} \
 		-B -N -e "SELECT COUNT(is_used=false or NULL) FROM uploaded" 2>/dev/null)
 	echo "Nunused = ${Nunused}"
-	if [ ${Nunused:-0} -gt 9 ]; then
+	if [ ${Nunused:-0} -gt $((NewDataNum-1)) ]; then
 		train_NeuralNetwork;
 	fi
 
 	echo 'END OF THE SCRIPT'
 	echo >> $LOG_OUT
 	echo >> $LOG_ERR
-	sleep 3600;
+	sleep $IntervalSec;
 done
 rm -f $LOCK_FILE

@@ -24,4 +24,4 @@ RUN mkdir -p /home/trainedDNN
 
 COPY entry-point.sh /
 ENTRYPOINT ["/entry-point.sh"]
-CMD ["/home/train_NeuralNetwork.sh", "bash"]
+CMD ["/home/train_NeuralNetwork.sh"]

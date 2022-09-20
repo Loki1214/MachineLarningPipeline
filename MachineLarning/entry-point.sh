@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 until curl "http://builder:5000" >/dev/null 2>&1; do
   echo "waiting for the WebAppBuilder to start..."
@@ -18,5 +18,20 @@ until mysqladmin ping -h mysql --silent; do
 done
 echo 'Succeeded in connecting to mysqld.'
 
-echo "Executes the command: \"$@\""
-exec "$@"
+rm -fv /tmp/* 2>/dev/null
+
+function execCommand() {
+	echo "Executes the command: \"$@\""
+	"$@" &
+	pid="$!"
+	trap "kill -HUP  ${pid}" SIGHUP
+	trap "kill -INT  ${pid}" SIGINT
+	trap "kill -QUIT ${pid}" SIGQUIT
+	trap "kill -TERM ${pid}" SIGTERM
+	trap "kill -STOP ${pid}" SIGSTOP
+
+	while kill -0 $pid > /dev/null 2>&1; do
+		wait
+	done
+}
+execCommand "$@";
