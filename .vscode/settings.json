@@ -1,0 +1,8 @@
+{
+	"python.formatting.provider": "black",
+	"files.exclude": {
+		"**/MachineLarning/work/data/**.jpg": true,
+		"**/DataStorage/digit-images": true,
+		"**/Registry/registry": true
+	}
+}

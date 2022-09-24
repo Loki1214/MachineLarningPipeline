@@ -1,15 +1,4 @@
-.vscode
-.devcontainer
 *.log
-*.ipynb
-*.dev.*
-*.dev
-model_weights.pth
 __pycache__/
-
-MachineLarning/data
-
 Registry/registry/*
 DataStorage/.*
-
-!WebAppBuilder/pretrainedDNN/model_weights.pth

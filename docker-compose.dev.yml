@@ -1,0 +1,112 @@
+version: '3'
+
+services:
+  notebook:
+    build:
+      context: MachineLarning
+      dockerfile: Dockerfile.dev
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - no_proxy=${NO_PROXY}
+    user: root
+    tty: true
+    env_file:
+      - common-variables.env
+    volumes:
+      - type: bind
+        source: ./MachineLarning/work
+        target: /home/jovyan/work
+      - type: bind
+        source: ./trainedDNN
+        target: /home/jovyan/trainedDNN
+      - type: bind
+        source: ./MachineLarning/log
+        target: /home/log
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  appbuilder:
+    build:
+      context: WebAppBuilder
+      dockerfile: Dockerfile
+      args:
+        - http_proxy=${HTTP_PROXY}
+        - https_proxy=${HTTPS_PROXY}
+        - no_proxy=${NO_PROXY}
+    user: root
+    env_file:
+      - common-variables.env
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+      - type: bind
+        source: ./WebAppBuilder/log
+        target: /home/log
+
+  webapp:
+    image: ${LOCAL_REGISTRY}/mywebapp
+    hostname: webapp
+    user: root
+    # command: ["bash"]
+    # tty: true
+    env_file:
+      - common-variables.env
+    ports:
+      - '5000:5000'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  storage:
+    image: minio/minio:RELEASE.2022-09-07T22-25-02Z.fips
+    hostname: storage
+    entrypoint: ["bash"]
+    command: -c "/opt/bin/minio server /export --address :9000 --console-address :9001"
+    env_file:
+      - common-variables.env
+    ports:
+      - 9001:9001
+    volumes:
+      - type: volume
+        source: minio-data
+        target: /export
+
+  database:
+    image: mysql:8
+    env_file:
+      - common-variables.env
+    volumes:
+      - type: volume
+        source: mysql-data
+        target: /var/lib/mysql
+      - type: bind
+        source: ./DataBase/initdb.d
+        target: /docker-entrypoint-initdb.d:ro
+
+  database-frontend:
+    image: phpmyadmin/phpmyadmin:5
+    depends_on:
+      - database
+    env_file:
+      - common-variables.env
+    environment:
+      - PMA_HOST=database
+    ports:
+    - '8080:80'
+
+volumes:
+  mysql-data:
+    name: mysql-volume
+  minio-data:
+    name: minio-volume

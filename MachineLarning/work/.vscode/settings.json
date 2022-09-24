@@ -1,0 +1,6 @@
+{
+	"python.formatting.provider": "black",
+	"files.exclude": {
+		"**/data/**.jpg": true,
+	}
+}
