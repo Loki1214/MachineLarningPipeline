@@ -2,14 +2,14 @@
 
 LOG_OUT=log/stdout.log
 LOG_ERR=log/stderr.log
-# exec 1> >(
-# 	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
-# 		| tee -a $LOG_OUT
-# 	)
-# exec 2> >(
-# 	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
-# 	| tee -a $LOG_ERR 1>&2
-# 	)
+exec 1> >(
+	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
+		| tee -a $LOG_OUT
+	)
+exec 2> >(
+	while read -r l; do echo "[$(date +"%Y-%m-%d %H:%M:%S")] $l"; done \
+	| tee -a $LOG_ERR 1>&2
+	)
 
 NewDataNum=2;
 IntervalSec=10;
@@ -40,12 +40,12 @@ function train_NeuralNetwork() {
 	curl -X POST -F  imageClassifier.py=@trainedDNN/imageClassifier.py  \
 				 -F model_definition.py=@trainedDNN/model_definition.py \
 				 -F   model_weights.pth=@trainedDNN/model_weights.pth   \
-			http://builder:5000
+			http://appbuilder:5000 2>/dev/null
 }
 
 while true; do
 	echo "Running script ${0}"
-	MNIST=$(mysql --host=${DATABASE} --port=3306 -u${MYSQL_USER} -p${MYSQL_PASSWORD} --database=${MYSQL_DATABASE} \
+	MNIST=$(mysql --host=${DATABASE_HOST} --port=3306 -u${MYSQL_USER} -p${MYSQL_PASSWORD} --database=${MYSQL_DATABASE} \
 		-B -N -e "SELECT COUNT(*) FROM MNIST" 2>/dev/null)
 	echo "MNIST = ${MNIST}"
 	if [ ${MNIST:-0} -lt 70000 ]; then
@@ -54,7 +54,7 @@ while true; do
 		train_NeuralNetwork;
 	fi
 
-	Nunused=$(mysql --host=${DATABASE} --port=3306 -u${MYSQL_USER} -p${MYSQL_PASSWORD} --database=${MYSQL_DATABASE} \
+	Nunused=$(mysql --host=${DATABASE_HOST} --port=3306 -u${MYSQL_USER} -p${MYSQL_PASSWORD} --database=${MYSQL_DATABASE} \
 		-B -N -e "SELECT COUNT(is_used=false or NULL) FROM uploaded" 2>/dev/null)
 	echo "Nunused = ${Nunused}"
 	if [ ${Nunused:-0} -gt $((NewDataNum-1)) ]; then

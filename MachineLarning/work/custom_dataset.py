@@ -23,11 +23,6 @@ class MyDataset(Dataset):
 								self.csv_file.iloc[idx, 0])
 		image = self.openImage(img_name)
 		labels = self.csv_file.iloc[idx, 1:]
-		# print(self.csv_file.iloc[idx, 1])
-		# labels = np.array([labels])
-		# labels = labels.astype('float')
-
-		# sample = {'image': image, 'labels': labels}
 
 		if self.transform:
 			image = self.transform(image)

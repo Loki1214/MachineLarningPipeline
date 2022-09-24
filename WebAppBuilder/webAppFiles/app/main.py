@@ -90,7 +90,7 @@ from botocore.config import Config
 
 s3 = boto3.resource(
 		service_name          = "s3",
-		endpoint_url          = "http://minio:9000",
+		endpoint_url          = "http://"+os.getenv('STORAGE_HOST')+":9000",
 		aws_access_key_id     = os.getenv('MINIO_ROOT_USER'),
 		aws_secret_access_key = os.getenv('MINIO_ROOT_PASSWORD'),
 		config                = Config(proxies={'http':  os.getenv('HTTP_PROXY'),
@@ -115,7 +115,7 @@ mysql = MySQLdb.connect(
 		user     = os.getenv('MYSQL_USER'),
 		password = os.getenv('MYSQL_PASSWORD'),
 		database = os.getenv('MYSQL_DATABASE'),
-		host     = os.getenv('DATABASE'),
+		host     = os.getenv('DATABASE_HOST'),
 		port     = 3306
 )
 mysqlCursor = mysql.cursor()

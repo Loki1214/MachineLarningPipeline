@@ -1,22 +1,22 @@
 #!/bin/bash
 
-until curl "http://builder:5000" >/dev/null 2>&1; do
+until curl "http://appbuilder:5000" >/dev/null 2>&1; do
   echo "waiting for the WebAppBuilder to start..."
   sleep 2
 done
 echo "Succeeded in connecting to the WebAppBuilder."
 
-until curl "http://${STORAGE}:9001" >/dev/null 2>&1; do
-  echo "waiting for ${STORAGE} to start..."
+until curl "http://storage:9001" >/dev/null 2>&1; do
+  echo "waiting for the storage to start..."
   sleep 2
 done
-echo "Succeeded in connecting to ${STORAGE} server."
+echo "Succeeded in connecting to the storage server."
 
-until mysqladmin ping -h mysql --silent; do
-  echo 'waiting for mysqld to start...'
+until mysqladmin ping -h database --silent; do
+  echo "waiting for the database to start..."
   sleep 2
 done
-echo 'Succeeded in connecting to mysqld.'
+echo "Succeeded in connecting to the database."
 
 rm -fv /tmp/* 2>/dev/null
 
