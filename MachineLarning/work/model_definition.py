@@ -15,10 +15,10 @@ class ConvertImageFormat(object):
 class Net(nn.Module):
 	def __init__(self):
 		super(Net, self).__init__()
-		self.image_height   = 4 * 32
-		self.image_width    = 4 * 32
+		self.image_height   = 4 * 28
+		self.image_width    = 4 * 28
 		self.image_size     = (self.image_height, self.image_width)
-		self.image_channels = 1
+		self.image_channels = 3
 		self.input_size     = self.image_height * self.image_width * self.image_channels
 		self.output_size    = 10
 		self.transform      = transforms.Compose(
@@ -26,9 +26,9 @@ class Net(nn.Module):
 				transforms.RandomResizedCrop(
 					self.image_size, scale=(1.0, 1.0), ratio=(1.0, 1.0)
 				),
-				ConvertImageFormat('L'),
+				ConvertImageFormat('RGB'),
 				transforms.RandomInvert(p=0.5),
-				transforms.RandomRotation(degrees=[-45,45]),
+				transforms.RandomRotation(degrees=[-30,30]),
 				transforms.ToTensor()
 			]
 		)

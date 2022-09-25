@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 LOG_OUT=log/stdout.log
 LOG_ERR=log/stderr.log
@@ -29,7 +29,7 @@ docker build --no-cache ${context} -t ${Registry}/mywebapp:${timestump} -t ${Reg
 docker push -a ${Registry}/mywebapp
 build_result=$?
 
-echo "docker image build with tag ${Registry}/mywebapp:${timestump}"
+echo "docker image built with tag ${Registry}/mywebapp:${timestump}"
 docker image rm -f $(docker images ${Registry}/mywebapp | grep none | awk '{print $3}') 2>/dev/null
 docker images ${Registry}/mywebapp
 

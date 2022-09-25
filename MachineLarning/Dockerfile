@@ -13,15 +13,14 @@ RUN pip3 install setproctitle
 RUN pip3 install sqlalchemy
 
 WORKDIR /home
-COPY data/torch                  /home/data/torch
-COPY work/database               /home/database
-COPY work/storage                /home/storage
 COPY work/registerMNIST.py       /home
 COPY work/model_definition.py    /home
 COPY work/custom_dataset.py      /home
 COPY work/train_NeuralNetwork.py /home
 COPY work/imageClassifier.py     /home
 COPY train_NeuralNetwork.sh      /home
+COPY work/database               /home/database
+COPY work/storage                /home/storage
 RUN mkdir -p /home/data
 RUN mkdir -p /home/trainedDNN
 

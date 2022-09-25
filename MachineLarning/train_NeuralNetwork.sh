@@ -11,7 +11,7 @@ exec 2> >(
 	| tee -a $LOG_ERR 1>&2
 	)
 
-NewDataNum=2;
+NewDataNum=10;
 IntervalSec=10;
 
 

@@ -161,9 +161,9 @@ train_dataset, test_dataset = torch.utils.data.random_split(
 #----------------------------------------------------------
 # 学習用／評価用のデータセットの作成
 # ハイパーパラメータなどの設定値
-num_epochs = 1000       # 学習を繰り返す回数
-num_batch = 100         # 一度に処理する画像の枚数
-learning_rate = 0.001   # 学習率
+num_epochs = 100       # 学習を繰り返す回数
+num_batch = 100        # 一度に処理する画像の枚数
+learning_rate = 0.001  # 学習率
 
 # データローダー
 train_dataloader = torch.utils.data.DataLoader(

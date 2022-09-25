@@ -1,6 +1,6 @@
 FROM docker
 
-RUN apk --update-cache add python3 py3-pip
+RUN apk --update-cache add bash python3 py3-pip
 
 RUN pip3 install --upgrade pip
 RUN pip3 install flask

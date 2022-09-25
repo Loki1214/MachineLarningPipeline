@@ -49,7 +49,7 @@ services:
         target: /home/log
 
   webapp:
-    image: ${LOCAL_REGISTRY}/mywebapp
+    image: ${LOCAL_REGISTRY}mywebapp
     hostname: webapp
     depends_on:
       - storage
@@ -108,6 +108,6 @@ services:
 
 volumes:
   mysql-data:
-    name: mysql-volume
+    name: mlpl-database-volume
   minio-data:
-    name: minio-volume
+    name: mlpl-storage-volume
